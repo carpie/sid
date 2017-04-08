@@ -1,6 +1,8 @@
 'use strict';
 const Tail = require('always-tail');
 
+const logger = require('./logger');
+
 let _unassignedAddrs = [];
 
 const _parseDnsmasqLine = (line) => {
@@ -8,29 +10,31 @@ const _parseDnsmasqLine = (line) => {
   const reNoAddr = /([0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+:[0-9a-f]+).* no address available/i;
 
   if (reRestart.test(line)) {
-    console.log('dnsmasq restart detected, clearing unassigned address maps');
+    logger.info('dnsmasq restart detected, clearing unassigned address maps');
     _unassignedAddrs = [];
     return;
   }
 
   const noAddr = reNoAddr.exec(line);
   if (noAddr) {
-    console.log('noaddr', noAddr[1]);
-    _unassignedAddrs.push({ ts: new Date(), mac: noAddr[1] });
+    if (!isValidRequest(noAddr[1])) {
+      logger.info('detetcted a request with no address assigned: %s', noAddr[1]);
+      _unassignedAddrs.push({ ts: new Date(), mac: noAddr[1] });
+    }
   }
 };
 
 
 const monitor = () => {
   const reDnsmasq = / dnsmasq/;
-  const tail = new Tail('/var/log/syslog', '\n', { start: 0 });
+  const tail = new Tail(process.env.SYSLOG_FILE, '\n');
   tail.on('line', (line) => {
     if (reDnsmasq.test(line)) {
       _parseDnsmasqLine(line);
     }
   });
   tail.on('error', (err) => {
-    console.log('error', err);
+    logger.error('error monitorinig syslog: %s', err);
   });
   tail.watch();
 };
@@ -41,7 +45,23 @@ const getRequests = () => {
 };
 
 
+const removeRequest = (mac) => {
+  logger.debug('Received request to remove mac: ', mac);
+  const pos = _unassignedAddrs.findIndex(x => x.mac === mac);
+  if (pos >= 0) {
+    logger.debug('removed %s', mac);
+    _unassignedAddrs = [..._unassignedAddrs.slice(0, pos), ..._unassignedAddrs.slice(pos + 1)];
+  }
+};
+
+
+const isValidRequest = (mac) => {
+  return !!_unassignedAddrs.find(x => x.mac === mac);
+};
+
 module.exports = {
   monitor,
-  getRequests
+  getRequests,
+  removeRequest,
+  isValidRequest
 };
