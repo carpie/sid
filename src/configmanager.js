@@ -2,8 +2,8 @@
 const BPromise = require('bluebird');
 
 const fs = BPromise.promisifyAll(require('fs'));
-//const os = require('os');
 
+const conexec = require('./conexec');
 const logger = require('./logger');
 const iputil = require('./iputil');
 
@@ -18,7 +18,6 @@ const reMac = /^[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}:[A-F
 
 const _getHost = (host) => {
   if (host) {
-    // FIXME - reject already used host
     return BPromise.resolve(host);
   }
   return fs.readFileAsync(_configFile)
@@ -127,6 +126,7 @@ const _checkMacAndHostNotAlreadyAssigned = (mac, host) => {
 };
 
 const _restartDnsMasq = () => {
+  return conexec('sudo', ['service', 'sid', 'restart']);
 };
 
 const addMac = (mac, host) => {
