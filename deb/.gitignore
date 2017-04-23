@@ -1,0 +1,9 @@
+# debian artifacts
+sid/debian/*debhelper*
+sid/debian/files
+sid/debian/*.substvars
+sid/debian/sid/
+*.tar.gz
+*.build
+*.changes
+*.deb

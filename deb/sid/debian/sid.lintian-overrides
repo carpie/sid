@@ -1,0 +1,8 @@
+sid: dir-or-file-in-opt *
+sid: extra-license-file *
+sid: init.d-script-not-marked-as-conffile *
+sid: init.d-script-not-included-in-package *
+sid: script-not-executable *
+sid: unusual-interpreter *
+sid: wrong-path-for-interpreter *
+sid: executable-not-elf-or-script *

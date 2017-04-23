@@ -1,0 +1,26 @@
+#!/bin/sh -e
+#
+# Config script for sid
+#
+
+. /usr/share/debconf/confmodule
+
+# Get conf file
+db_input medium sid/conf_file || true
+db_go
+
+# Get service port
+db_input medium sid/port || true
+db_go
+
+# Get network address
+db_input medium sid/network_addr || true
+db_go
+
+# Get network mask
+db_input medium sid/network_mask || true
+db_go
+
+# Get log level
+db_input medium sid/level || true
+db_go

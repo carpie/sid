@@ -1,0 +1,29 @@
+Template: sid/conf_file
+Type: string
+Default: home.dns
+Description: The dnsmasq config file for your network
+  This should be the name of the dnsmasq config file you set up for your
+  network.  The file typically resides in /etc/dnsmasq.d/. You do not need to
+  enter the path, just the name of the file.
+
+Template: sid/port
+Type: string
+Default: 4253
+Description: The port the SID service listens on
+
+Template: sid/network_addr
+Type: string
+Default: 192.168.0.0
+Description: The network address SID/dnsmasq manages
+  This should be your router's internal IP address masked with the netmask.
+
+Template: sid/network_mask
+Type: string
+Default: 255.255.255.0
+Description: This network mask of the network SID/dnsmasq manages
+
+Template: sid/log_level
+Type: select
+Choices: error, warn, info, verbose, debug
+Default: info
+Description: Controls the amount of information SID writes to syslog

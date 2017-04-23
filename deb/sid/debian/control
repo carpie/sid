@@ -1,0 +1,18 @@
+Source: sid
+Section: contrib/utils
+Priority: optional
+Maintainer: carpie <elcarpie@gmail.com>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.9.6
+Homepage: https://github.com/carpie/sid
+Vcs-Browser: https://github.com/carpie/sid
+
+Package: sid
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Simple IP Dispenser (SID)
+ SID provides a web service to facilitate adding reserved IP addresses to
+ dnsmasq.  SID monitors requests for IPs and allows those requests to be
+ queried and then denied or accepted.  If accepted, an IP address will be
+ automatically assigned with a default hostname.  The hostname may optionally
+ supplied by the user.

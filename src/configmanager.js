@@ -3,7 +3,7 @@ const BPromise = require('bluebird');
 
 const fs = BPromise.promisifyAll(require('fs'));
 
-const conexec = require('./conexec');
+const conexec = require('./conexec').conexec;
 const logger = require('./logger');
 const iputil = require('./iputil');
 
@@ -126,7 +126,7 @@ const _checkMacAndHostNotAlreadyAssigned = (mac, host) => {
 };
 
 const _restartDnsMasq = () => {
-  return conexec('sudo', ['service', 'sid', 'restart']);
+  return conexec('sudo', ['service', 'dnsmasq', 'restart']);
 };
 
 const addMac = (mac, host) => {

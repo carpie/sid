@@ -1,0 +1,117 @@
+#!/bin/sh
+# postinst script for sid
+#
+# Automatically downloads and installs node.js for the detected platform
+#
+
+set -e
+
+# Pull in debconf
+. /usr/share/debconf/confmodule
+
+DEB_ARCH=$(dpkg-architecture -q DEB_HOST_ARCH)
+if [ "${DEB_ARCH}" = "armhf" ]; then
+    ARCH=armv7l
+else
+    ARCH=x64
+fi
+
+NODE_VERSION=6.10.2
+NODE_PKG=node-v${NODE_VERSION}-linux-${ARCH}.tar.xz
+NODE_URL=https://nodejs.org/dist/v${NODE_VERSION}/${NODE_PKG}
+SHA_URL=https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt
+TMP_DIR=/opt/sid/tmp
+NODE_DIR=/opt/sid/node
+
+download_node()
+{
+    echo "Downloading node v${NODE_VERSION}..."
+    wget -q -P $TMP_DIR ${NODE_URL}
+}
+
+do_configure()
+{
+    mkdir -p ${TMP_DIR}
+    echo "Getting SHA sums..."
+    rm -f ${TMP_DIR}/SHASUMS256.txt
+    wget -q -P ${TMP_DIR} ${SHA_URL}
+    CHECK_SHA=$(grep "linux-${ARCH}.*xz" ${TMP_DIR}/SHASUMS256.txt | awk '{print $1}')
+    # Check to see if the package is already downloaded
+    if [ -f ${TMP_DIR}/${NODE_PKG} ]; then
+        NODE_SHA=$(sha256sum ${TMP_DIR}/${NODE_PKG} | awk '{print $1}')
+        if [ "${NODE_SHA}" = "${CHECK_SHA}" ]; then
+            echo "Node already downloaded..."
+        else
+            download_node
+        fi
+    else
+        download_node
+    fi
+
+    echo "Checking package validity..."
+    NODE_SHA=$(sha256sum ${TMP_DIR}/${NODE_PKG} | awk '{print $1}')
+    if [ "${NODE_SHA}" != "${CHECK_SHA}" ]; then
+        echo "Bad checksum: expected ${CHECK_SHA} got ${NODE_SHA}..."
+        exit 1
+    fi
+
+    echo "Unpacking node v${NODE_VERSION}..."
+    rm -rf ${NODE_DIR}
+    mkdir -p ${NODE_DIR}
+    tar -C ${NODE_DIR} --strip-components=1 -Jxf ${TMP_DIR}/${NODE_PKG}
+
+    # Write environment file based on debconf answers
+    db_get sid/conf_file
+    CONF_FILE=${RET}
+    db_get sid/port
+    PORT=${RET}
+    db_get sid/network_addr
+    NET_ADDR=${RET}
+    db_get sid/network_mask
+    NET_MASK=${RET}
+    db_get sid/log_level
+    LOG_LEVEL=${RET}
+    cat <<EOF > /opt/sid/src/.env
+# Config values for SID
+
+# Port to run the SID service on
+PORT=${PORT}
+
+# This is the dnsmasq configuration file to modify with new addresses
+DNSMASQ_CONF_FILE='/etc/dnsmasq.d/${CONF_FILE}'
+
+# This is the base network address of the network to modify
+NETWORK_ADDR=${NET_ADDR}
+
+# This is the network mask of the network to modify
+NETWORK_MASK=${NET_MASK}
+
+# This is the syslog file to monitor for reports of unassigned addresses
+SYSLOG_FILE=/var/log/syslog
+
+# Logging level - one of error, warn, info, verbose, debug, silly
+LOG_LEVEL=${LOG_LEVEL}
+EOF
+
+    # Make dns file writable by pi user
+    chgrp pi /etc/dnsmasq.d/${CONF_FILE}
+    chmod g+w /etc/dnsmasq.d/${CONF_FILE}
+}
+
+case "$1" in
+    configure)
+        do_configure
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
