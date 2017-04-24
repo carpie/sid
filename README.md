@@ -109,10 +109,10 @@ Adds a static reservation for the specified MAC address with an optional host na
 
 **Example**:
 ```
-$ curl -d '{"hostname": "phone"}' -X POST 192.168.0.2:4253/requests/11:22:33:44:55:66
+$ curl -H "Content-Type: application/json" -d '{"hostname": "phone"}' -X POST 192.168.0.2:4253/requests/11:22:33:44:55:66
 {"mac":"11:22:33:44:55:66","ip":"192.168.0.12","hostname":"phone"}
 
-$ curl -d '{"hostname": "phone"}' -X POST 192.168.0.2:4253/requests/11:22:33:44:55:66
+$ curl -H "Content-Type: application/json" -d '{"hostname": "phone"}' -X POST 192.168.0.2:4253/requests/11:22:33:44:55:66
 {"error":"Error: MAC address is already assigned an address"}
 
 ```
