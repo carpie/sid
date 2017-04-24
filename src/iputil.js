@@ -1,6 +1,9 @@
 'use strict';
 
 const ipToSegments = (ip) => {
+  if (!/^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/.test(ip)) {
+    throw new Error('Invalid IP address');
+  }
   return ip.split('.').map(segment => parseInt(segment, 10) & 0xFF);
 };
 
@@ -34,11 +37,27 @@ const isOnNetwork = (addr, mask, ip) => {
   return true;
 };
 
+const isNetworkAddress = (ip, mask) => {
+  const maskSegments = ipToSegments(mask);
+  const res = ipToSegments(ip).reduce((acc, val, idx) => {
+    return acc + (val & (~maskSegments[idx]));
+  }, 0);
+  return (res === 0);
+};
+
+const isBroadcastAddress = (ip, mask) => {
+  const maskSegments = ipToSegments(mask);
+  const res = ipToSegments(ip).reduce((acc, val, idx) => {
+    return acc + (~(val | maskSegments[idx]) & 0xFF);
+  }, 0);
+  return (res === 0);
+};
+
 function* generateIp(startIp) {
   let ip = startIp;
   const incSegment = (segments, i) => {
     segments[i] += 1;
-    if (segments[i] > 254) {
+    if (segments[i] > 255) {
       segments[i] = 0;
       if (i > 0) {
         incSegment(segments, i - 1);
@@ -48,8 +67,8 @@ function* generateIp(startIp) {
   };
 
   while (ip) {
-    ip = incSegment(ipToSegments(ip), 3).join('.');
     yield ip;
+    ip = incSegment(ipToSegments(ip), 3).join('.');
   }
 }
 
@@ -57,6 +76,8 @@ function* generateIp(startIp) {
 module.exports = {
   generateIp,
   isOnNetwork,
+  isNetworkAddress,
+  isBroadcastAddress,
   ipSorter,
   ipToSegments
 };

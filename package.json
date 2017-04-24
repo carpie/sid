@@ -7,7 +7,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "lint": "eslint src/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape test/*.js | faucet",
+    "test-dbg": "TAP_DIAG=1 tape test/*.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,11 @@
   "license": "MIT",
   "devDependencies": {
     "eslint": "^3.18.0",
-    "nodemon": "^1.11.0"
+    "faucet": "0.0.1",
+    "nodemon": "^1.11.0",
+    "proxyquire": "^1.7.11",
+    "sinon": "^2.1.0",
+    "tape": "^4.6.3"
   },
   "dependencies": {
     "always-tail": "^0.2.0",

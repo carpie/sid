@@ -36,14 +36,20 @@ const _getHost = (host) => {
   });
 };
 
-const _getStartingIp = () => {
-  logger.debug('_getStartingIp');
+const _getIpRange = () => {
+  logger.debug('_getIpRange');
   return fs.readFileAsync(_configFile)
   .then((data) => {
-    return data.toString().split('\n')
+    const ips = data.toString().split('\n')
     .filter(line => reDhcpRangeEntry.test(line))[0]
     .split('=')[1]
-    .split(',')[0];
+    .split(',');
+    // Ending ranges are optional in dnsmasq, so we test the second entry for an IP
+    if ((ips.length > 1) && reIp.test(ips[1])) {
+      // We have start and end
+      return ips.slice(0, 2);
+    }
+    return [...ips.slice(0, 1), null];
   });
 };
 
@@ -66,19 +72,27 @@ const _getNextAvailableIp = () => {
   logger.debug('_getNextAvailableIp');
   // Get the starting IP
   let startIp;
-  return _getStartingIp()
-  .then((ip) => {
-    startIp = ip;
+  let endIp;
+  return _getIpRange()
+  .then((ips) => {
+    startIp = ips[0];
+    endIp = ips[1];
     return _getAssignedIps(process.env.NETWORK_ADDR, process.env.NETWORK_MASK);
   })
   .then((ips) => {
+    const addr = process.env.NETWORK_ADDR;
+    const mask = process.env.NETWORK_MASK;
     for (let ip of iputil.generateIp(startIp)) {
-      if (!iputil.isOnNetwork(process.env.NETWORK_ADDR, process.env.NETWORK_MASK, ip)) {
+      if (!iputil.isOnNetwork(addr, mask, ip) ||
+          iputil.isBroadcastAddress(ip, mask) ||
+          iputil.isNetworkAddress(ip, mask)) {
         break;
       }
       if (ips.indexOf(ip) < 0) {
-        logger.debug('found available ip %s', ip);
-        return ip;
+        if (!endIp || iputil.ipSorter(ip, endIp) <= 0) {
+          logger.debug('found available ip %s', ip);
+          return ip;
+        }
       }
     }
     throw new Error('no ip available');
@@ -120,7 +134,7 @@ const _checkMacAndHostNotAlreadyAssigned = (mac, host) => {
       throw new Error('Hostname is already in use');
     }
     if (recs.find(x => x.macs.indexOf(mac) >= 0)) {
-      throw new Error('MAC address is already assigned an address');
+      throw new Error('MAC is already assigned an address');
     }
   });
 };
