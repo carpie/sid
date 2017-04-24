@@ -1,7 +1,7 @@
 {
   "name": "sid",
   "version": "0.1.0",
-  "description": "Static IP Dispenser is a web service that monitors dnsmasq activity and allows you to easily assign a consistent IP address to a particular device that requests and address from dnsmasq.",
+  "description": "Static IP Dispenser is a web service that monitors dnsmasq activity and allows you to easily assign a consistent IP address to a particular device that requests an address from dnsmasq.",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@pi2:sid"
+    "url": "https://github.com/carpie/sid"
   },
   "keywords": [
     "dnsmasq",
