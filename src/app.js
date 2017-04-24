@@ -19,9 +19,9 @@ app.get('/requests$', (req, res) => {
 });
 
 
-app.post('/request/:mac$', (req, res) => {
+app.post('/requests/:mac$', (req, res) => {
   logger.info('assigning address for %s as %s', req.params.mac, req.body.host);
-  configManager.addMac(req.params.mac, req.body.host)
+  configManager.addMac(req.params.mac, req.body.hostname)
   .then((rec) => {
     syslogMonitor.removeRequest(req.params.mac);
     return res.json(rec);
@@ -33,7 +33,7 @@ app.post('/request/:mac$', (req, res) => {
 });
 
 
-app.delete('/request/:mac$', (req, res) => {
+app.delete('/requests/:mac$', (req, res) => {
   if (!syslogMonitor.isValidRequest(req.params.mac)) {
     return res.status(404).json({ error: 'Not found' });
   }
