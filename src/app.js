@@ -20,7 +20,7 @@ app.get('/requests$', (req, res) => {
 
 
 app.post('/requests/:mac$', (req, res) => {
-  logger.info('assigning address for %s as %s', req.params.mac, req.body.host);
+  logger.info('assigning address for %s as %s', req.params.mac, req.body.hostname);
   configManager.addMac(req.params.mac, req.body.hostname)
   .then((rec) => {
     syslogMonitor.removeRequest(req.params.mac);
