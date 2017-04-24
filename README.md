@@ -13,10 +13,19 @@ dnsmasq configuration on a Raspberry Pi.
 
 ## Installation
 
-This service installs on a Raspberry Pi using a Debian package.  To build the package, clone the repo, then run:
+This service installs on a Raspberry Pi using a Debian package.  First, make sure you have the dependencies installed in
+order to build a Debian package:
 
 ```
-cd sid/deb/sid
+sudo apt-get install build-essentials debhelper devscripts
+```
+
+Then, to build the package, clone the repo, then run:
+
+```
+cd sid/src
+npm install --only=production
+cd ../deb/sid
 make deb
 ```
 
