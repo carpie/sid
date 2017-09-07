@@ -10,10 +10,11 @@ set -e
 . /usr/share/debconf/confmodule
 
 DEB_ARCH=$(dpkg-architecture -q DEB_HOST_ARCH)
-if [ "${DEB_ARCH}" = "armhf" ]; then
-    ARCH=armv7l
-else
+MACHINE=$(uname -m)
+if [ "${MACHINE}" = "x86_64" ]; then
     ARCH=x64
+else
+    ARCH=${MACHINE}
 fi
 
 NODE_VERSION=6.10.2
