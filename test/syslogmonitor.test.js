@@ -2,6 +2,7 @@
 
 const test = require('tape');
 const proxyquire = require('proxyquire');
+const sinon = require('sinon');
 
 let lineCallback = null;
 
@@ -24,6 +25,7 @@ class TailMock  {
 const sm = proxyquire('../src/syslogmonitor', {
   'always-tail': TailMock
 });
+sm._cleanupTimeout = 200;
 
 
 const reset = () => {
@@ -185,6 +187,33 @@ test('clearRequests removes all requests', (t) => {
   sm.clearRequests();
   reqs = sm.getRequests();
   t.equal(reqs.length, 0);
+  t.end();
+});
+
+
+test('addr is not added if recently removed', (t) => {
+  reset();
+  const clock = sinon.useFakeTimers();
+  sm.monitor();
+  lineCallback('Apr 22 19:07:18 pi dnsmasq-dhcp[2016]: DHCPDISCOVER(eth0) 11:22:33:44:55:01 no address available');
+  let reqs = sm.getRequests();
+  t.equal(reqs.length, 1);
+  sm.removeRequest('11:22:33:44:55:01');
+  reqs = sm.getRequests();
+  t.equal(reqs.length, 0);
+
+  // Address is not detected due to being recently removed
+  lineCallback('Apr 22 19:07:18 pi dnsmasq-dhcp[2016]: DHCPDISCOVER(eth0) 11:22:33:44:55:01 no address available');
+  reqs = sm.getRequests();
+  t.equal(reqs.length, 0);
+
+  // After the timeout, the address is detected again
+  clock.tick(60000);
+  clock.restore();
+
+  lineCallback('Apr 22 19:07:18 pi dnsmasq-dhcp[2016]: DHCPDISCOVER(eth0) 11:22:33:44:55:01 no address available');
+  reqs = sm.getRequests();
+  t.equal(reqs.length, 1);
   t.end();
 });
 
