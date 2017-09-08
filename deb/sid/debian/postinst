@@ -17,7 +17,7 @@ else
     ARCH=${MACHINE}
 fi
 
-NODE_VERSION=6.10.2
+NODE_VERSION=6.11.3
 NODE_PKG=node-v${NODE_VERSION}-linux-${ARCH}.tar.xz
 NODE_URL=https://nodejs.org/dist/v${NODE_VERSION}/${NODE_PKG}
 SHA_URL=https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt
